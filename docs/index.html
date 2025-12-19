@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALOHA Threat Zone Analyzer</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --glass-bg: rgba(20, 20, 30, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --accent-color: #4f46e5;
+            --accent-hover: #4338ca;
+            --red-zone: #ef4444;
+            --orange-zone: #f97316;
+            --yellow-zone: #eab308;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            background-color: #111;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+            z-index: 1;
+        }
+
+        .glass-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            left: auto;
+            width: 380px;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 24px;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            color: var(--text-primary);
+            transition: transform 0.3s ease;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            background: linear-gradient(to right, #fff, #ccc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .upload-section {
+            margin-bottom: 24px;
+        }
+
+        .upload-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px dashed var(--glass-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .upload-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .file-status {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stat-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-2px);
+        }
+
+        .red-zone {
+            border-left: 4px solid var(--red-zone);
+        }
+
+        .orange-zone {
+            border-left: 4px solid var(--orange-zone);
+        }
+
+        .yellow-zone {
+            border-left: 4px solid var(--yellow-zone);
+        }
+
+        @keyframes flash {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.1);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .zone-icon {
+            font-size: 1.5rem;
+            animation: flash 2s infinite ease-in-out;
+        }
+
+        .stat-info h3 {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 2px;
+        }
+
+        .stat-info .count {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-right: 4px;
+        }
+
+        .stat-info .label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        #loading-indicator {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #status-message {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .developer-credits {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-align: center;
+            font-style: italic;
+            letter-spacing: 0.5px;
+        }
+
+        .developer-credits strong {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        /* Premium Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="map"></div>
+
+    <div class="glass-panel">
+        <div class="header">
+            <h1>ALOHA Threat Analyzer</h1>
+            <p>Upload .kml to count buildings in threat zones</p>
+        </div>
+
+        <div class="upload-section">
+            <label for="kml-upload" class="upload-btn">
+                <span class="icon">📂</span>
+                <span id="upload-text">Upload KML File</span>
+            </label>
+            <input type="file" id="kml-upload" accept=".kml" hidden>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card red-zone">
+                <div class="zone-icon">🔴</div>
+                <div class="stat-info">
+                    <h3>Red Zone</h3>
+                    <span class="count" id="count-red">0</span>
+                    <span class="label">Buildings</span>
+                </div>
+            </div>
+
+            <div class="stat-card orange-zone">
+                <div class="zone-icon">🟠</div>
+                <div class="stat-info">
+                    <h3>Orange Zone</h3>
+                    <span class="count" id="count-orange">0</span>
+                    <span class="label">Buildings</span>
+                </div>
+            </div>
+
+            <div class="stat-card yellow-zone">
+                <div class="zone-icon">🟡</div>
+                <div class="stat-info">
+                    <h3>Yellow Zone</h3>
+                    <span class="count" id="count-yellow">0</span>
+                    <span class="label">Buildings</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading-indicator" class="hidden">
+            <div class="spinner"></div>
+            <span id="loading-text">Analyzing...</span>
+        </div>
+
+        <div id="status-message"></div>
+
+        <div class="developer-credits">
+            Developed by <strong>Dr. Arkaprabha Sau</strong><br>
+            MBBS, MD (Gold Medalist), DPH, PhD (CSE-AI-ML)
+        </div>
+    </div>
+
+    <!-- Libraries -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/@mapbox/togeojson@0.16.0/togeojson.js"></script>
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+    <script src="https://unpkg.com/osmtogeojson@2.2.12/osmtogeojson.js"></script>
+
+    <!-- Data -->
+    <script src="INDIA/india_states.js"></script>
+
+    <!-- App Logic -->
+    <script>
+        // Initialize map
+        const map = L.map('map').setView([20.5937, 78.9629], 5); // Default to India
+
+        // Add dark mode tile layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
+
+        // Load India States (From local JS file)
+        if (typeof indiaStatesData !== 'undefined') {
+            console.log('India states data loaded from JS');
+            L.geoJSON(indiaStatesData, {
+                style: {
+                    color: '#ffffff',
+                    weight: 1,
+                    dashArray: '2, 5',
+                    fillOpacity: 0,
+                    opacity: 0.3
+                }
+            }).addTo(map);
+        } else {
+            console.error('India states data not found. Check india_states.js');
+        }
+
+        // State
+        let threatZonesLayer = null;
+        let buildingsLayer = null;
+        let threatZonesGeoJSON = null;
+
+        // DOM Elements
+        const fileInput = document.getElementById('kml-upload');
+        const uploadText = document.getElementById('upload-text');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const loadingText = document.getElementById('loading-text');
+        const statusMessage = document.getElementById('status-message');
+        const countRed = document.getElementById('count-red');
+        const countOrange = document.getElementById('count-orange');
+        const countYellow = document.getElementById('count-yellow');
+
+        // Event Listeners
+        fileInput.addEventListener('change', handleFileUpload);
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            uploadText.textContent = file.name;
+            statusMessage.textContent = '';
+            showLoading(true, 'Parsing KML...');
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const kmlText = e.target.result;
+                processKML(kmlText);
+            };
+            reader.readAsText(file);
+        }
+
+        function processKML(kmlText) {
+            try {
+                const parser = new DOMParser();
+                const kmlDom = parser.parseFromString(kmlText, 'text/xml');
+                const geojson = toGeoJSON.kml(kmlDom);
+
+                if (!geojson.features || geojson.features.length === 0) {
+                    throw new Error('No valid features found in KML.');
+                }
+
+                threatZonesGeoJSON = geojson;
+
+                // Clear existing layers
+                if (threatZonesLayer) map.removeLayer(threatZonesLayer);
+                if (buildingsLayer) map.removeLayer(buildingsLayer);
+
+                updateCounts(0, 0, 0);
+
+                // Add to map
+                threatZonesLayer = L.geoJSON(geojson, {
+                    style: function (feature) {
+                        let color = '#3388ff';
+                        const name = feature.properties.name ? feature.properties.name.toLowerCase() : '';
+                        const styleUrl = feature.properties.styleUrl || '';
+
+                        if (name.includes('red') || styleUrl.includes('red')) color = '#ef4444';
+                        else if (name.includes('orange') || styleUrl.includes('orange')) color = '#f97316';
+                        else if (name.includes('yellow') || styleUrl.includes('yellow')) color = '#eab308';
+
+                        return {
+                            color: color,
+                            fillColor: color,
+                            fillOpacity: 0.3,
+                            weight: 2
+                        };
+                    }
+                }).addTo(map);
+
+                const bounds = threatZonesLayer.getBounds();
+                map.fitBounds(bounds);
+
+                fetchBuildings(bounds);
+
+            } catch (error) {
+                console.error(error);
+                statusMessage.textContent = 'Error parsing KML: ' + error.message;
+                showLoading(false);
+            }
+        }
+
+        async function fetchBuildings(bounds) {
+            showLoading(true, 'Fetching OSM data...');
+
+            const south = bounds.getSouth();
+            const west = bounds.getWest();
+            const north = bounds.getNorth();
+            const east = bounds.getEast();
+
+            const query = `
+                [out:json][timeout:25];
+                (
+                  way["building"](${south},${west},${north},${east});
+                  relation["building"](${south},${west},${north},${east});
+                );
+                out body;
+                >;
+                out skel qt;
+            `;
+
+            try {
+                const response = await fetch('https://overpass-api.de/api/interpreter', {
+                    method: 'POST',
+                    body: query
+                });
+
+                if (!response.ok) throw new Error('Overpass API request failed');
+
+                const osmData = await response.json();
+                const buildingsGeoJSON = osmtogeojson(osmData);
+
+                // Display buildings
+                buildingsLayer = L.geoJSON(buildingsGeoJSON, {
+                    style: {
+                        color: '#666',
+                        weight: 1,
+                        fillColor: '#999',
+                        fillOpacity: 0.5
+                    }
+                }).addTo(map);
+
+                analyzeImpact(buildingsGeoJSON);
+
+            } catch (error) {
+                console.error(error);
+                statusMessage.textContent = 'Error fetching buildings: ' + error.message;
+                showLoading(false);
+            }
+        }
+
+        function analyzeImpact(buildings) {
+            showLoading(true, 'Analyzing impact...');
+
+            // Use setTimeout to allow UI to update before heavy calculation
+            setTimeout(() => {
+                let redCount = 0;
+                let orangeCount = 0;
+                let yellowCount = 0;
+
+                // Store zones as arrays to handle multiple polygons per color
+                const zones = { red: [], orange: [], yellow: [] };
+
+                threatZonesGeoJSON.features.forEach(feature => {
+                    const name = feature.properties.name ? feature.properties.name.toLowerCase() : '';
+                    const styleUrl = feature.properties.styleUrl || '';
+
+                    if (name.includes('red') || styleUrl.includes('red')) zones.red.push(feature);
+                    else if (name.includes('orange') || styleUrl.includes('orange')) zones.orange.push(feature);
+                    else if (name.includes('yellow') || styleUrl.includes('yellow')) zones.yellow.push(feature);
+                });
+
+                buildings.features.forEach(building => {
+                    // Calculate overlap area
+                    const buildingPoly = building.geometry.type === 'Polygon' ? turf.polygon(building.geometry.coordinates) :
+                        building.geometry.type === 'MultiPolygon' ? turf.multiPolygon(building.geometry.coordinates) : null;
+
+                    if (!buildingPoly) return;
+
+                    const buildingArea = turf.area(buildingPoly);
+                    let assigned = false;
+
+                    // Check Red (Iterate through all red polygons)
+                    if (!assigned) {
+                        for (const zone of zones.red) {
+                            try {
+                                const intersection = turf.intersect(buildingPoly, zone);
+                                if (intersection) {
+                                    const overlapArea = turf.area(intersection);
+                                    if (overlapArea / buildingArea > 0.5) {
+                                        redCount++;
+                                        assigned = true;
+                                        break; // Stop checking other red zones
+                                    }
+                                }
+                            } catch (e) { }
+                        }
+                    }
+
+                    // Check Orange
+                    if (!assigned) {
+                        for (const zone of zones.orange) {
+                            try {
+                                const intersection = turf.intersect(buildingPoly, zone);
+                                if (intersection) {
+                                    const overlapArea = turf.area(intersection);
+                                    if (overlapArea / buildingArea > 0.5) {
+                                        orangeCount++;
+                                        assigned = true;
+                                        break;
+                                    }
+                                }
+                            } catch (e) { }
+                        }
+                    }
+
+                    // Check Yellow
+                    if (!assigned) {
+                        for (const zone of zones.yellow) {
+                            try {
+                                const intersection = turf.intersect(buildingPoly, zone);
+                                if (intersection) {
+                                    const overlapArea = turf.area(intersection);
+                                    if (overlapArea / buildingArea > 0.5) {
+                                        yellowCount++;
+                                        assigned = true;
+                                        break;
+                                    }
+                                }
+                            } catch (e) { }
+                        }
+                    }
+                });
+
+                updateCounts(redCount, orangeCount, yellowCount);
+                showLoading(false);
+            }, 100);
+        }
+
+        function updateCounts(r, o, y) {
+            countRed.textContent = r;
+            countOrange.textContent = o;
+            countYellow.textContent = y;
+        }
+
+        function showLoading(show, text = 'Loading...') {
+            if (show) {
+                loadingIndicator.classList.remove('hidden');
+                loadingText.textContent = text;
+            } else {
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+
+</html>

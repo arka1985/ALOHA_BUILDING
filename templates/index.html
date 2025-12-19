@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALOHA Threat Zone Analyzer</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <div id="map-container">
+        {% if map_html %}
+        {{ map_html | safe }}
+        {% else %}
+        <div class="placeholder-map"></div>
+        {% endif %}
+    </div>
+
+    <div class="glass-panel">
+        <div class="header">
+            <h1>ALOHA Threat Analyzer</h1>
+            <p>Upload .kml to count buildings in threat zones</p>
+        </div>
+
+        <div class="upload-section">
+            <form method="POST" enctype="multipart/form-data" id="upload-form">
+                <label for="kml-upload" class="upload-btn">
+                    <span class="icon">📂</span>
+                    <span id="upload-text">Upload KML File</span>
+                </label>
+                <input type="file" name="kml_file" id="kml-upload" accept=".kml" hidden
+                    onchange="document.getElementById('upload-form').submit(); document.getElementById('upload-text').textContent = 'Analyzing...';">
+            </form>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card red-zone">
+                <div class="zone-icon">🔴</div>
+                <div class="stat-info">
+                    <h3>Red Zone</h3>
+                    <span class="count" id="count-red">{{ counts.red if counts else 0 }}</span>
+                    <span class="label">Buildings</span>
+                </div>
+            </div>
+
+            <div class="stat-card orange-zone">
+                <div class="zone-icon">🟠</div>
+                <div class="stat-info">
+                    <h3>Orange Zone</h3>
+                    <span class="count" id="count-orange">{{ counts.orange if counts else 0 }}</span>
+                    <span class="label">Buildings</span>
+                </div>
+            </div>
+
+            <div class="stat-card yellow-zone">
+                <div class="zone-icon">🟡</div>
+                <div class="stat-info">
+                    <h3>Yellow Zone</h3>
+                    <span class="count" id="count-yellow">{{ counts.yellow if counts else 0 }}</span>
+                    <span class="label">Buildings</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="developer-credits">
+            Developed by <strong>Dr. Arkaprabha Sau</strong><br>
+            MBBS, MD (Gold Medalist), DPH, PhD (CSE-AI-ML)
+        </div>
+    </div>
+
+    <style>
+        /* Additional styles for the backend version */
+        #map-container {
+            height: 100vh;
+            width: 100vw;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            background-color: #111;
+        }
+
+        #map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .placeholder-map {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #222 0%, #111 100%);
+        }
+    </style>
+
+</body>
+
+</html>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Test Threat Zones</name>
+    <Style id="redZone">
+      <LineStyle><color>ff0000ff</color></LineStyle>
+      <PolyStyle><color>800000ff</color></PolyStyle>
+    </Style>
+    <Style id="orangeZone">
+      <LineStyle><color>ff00a5ff</color></LineStyle>
+      <PolyStyle><color>8000a5ff</color></PolyStyle>
+    </Style>
+    <Style id="yellowZone">
+      <LineStyle><color>ff00ffff</color></LineStyle>
+      <PolyStyle><color>8000ffff</color></PolyStyle>
+    </Style>
+    <Placemark>
+      <name>Red Zone</name>
+      <styleUrl>#redZone</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              77.2090,28.6139,0
+              77.2100,28.6139,0
+              77.2100,28.6149,0
+              77.2090,28.6149,0
+              77.2090,28.6139,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Orange Zone</name>
+      <styleUrl>#orangeZone</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              77.2080,28.6129,0
+              77.2110,28.6129,0
+              77.2110,28.6159,0
+              77.2080,28.6159,0
+              77.2080,28.6129,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Yellow Zone</name>
+      <styleUrl>#yellowZone</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              77.2070,28.6119,0
+              77.2120,28.6119,0
+              77.2120,28.6169,0
+              77.2070,28.6169,0
+              77.2070,28.6119,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>

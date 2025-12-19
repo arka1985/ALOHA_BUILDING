@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALOHA Threat Zone Analyzer</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <div class="glass-panel">
+        <div class="header">
+            <h1>ALOHA Threat Analyzer</h1>
+            <p>Upload .kml to count buildings in threat zones</p>
+        </div>
+
+        <div class="upload-section">
+            <label for="kml-upload" class="upload-btn">
+                <span class="icon">📂</span> Upload KML File
+            </label>
+            <input type="file" id="kml-upload" accept=".kml" hidden>
+            <div id="file-name" class="file-status">No file chosen</div>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card red-zone">
+                <div class="zone-icon">🔴</div>
+                <div class="stat-info">
+                    <h3>Red Zone</h3>
+                    <span class="count" id="count-red">0</span>
+                    <span class="label">Buildings</span>
+                </div>
+            </div>
+            
+            <div class="stat-card orange-zone">
+                <div class="zone-icon">🟠</div>
+                <div class="stat-info">
+                    <h3>Orange Zone</h3>
+                    <span class="count" id="count-orange">0</span>
+                    <span class="label">Buildings</span>
+                </div>
+            </div>
+
+            <div class="stat-card yellow-zone">
+                <div class="zone-icon">🟡</div>
+                <div class="stat-info">
+                    <h3>Yellow Zone</h3>
+                    <span class="count" id="count-yellow">0</span>
+                    <span class="label">Buildings</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading-indicator" class="hidden">
+            <div class="spinner"></div>
+            <span>Analyzing spatial data...</span>
+        </div>
+        
+        <div id="status-message"></div>
+    </div>
+
+    <!-- Libraries -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/@mapbox/togeojson@0.16.0/togeojson.js"></script>
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+    <script src="https://unpkg.com/osmtogeojson@2.2.12/osmtogeojson.js"></script>
+
+    <!-- App Logic -->
+    <script src="script.js"></script>
+</body>
+</html>

@@ -13,11 +13,11 @@ fetch('INDIA/INDIA_STATES.geojson')
     .then(data => {
         L.geoJSON(data, {
             style: {
-                color: '#ffffff',
+                color: '#333333',
                 weight: 1,
                 dashArray: '2, 5',
                 fillOpacity: 0,
-                opacity: 0.3
+                opacity: 0.7
             }
         }).addTo(map);
     })

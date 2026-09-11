@@ -76,6 +76,9 @@ def generate_map(kml_path):
 
     if buildings_gdf.crs is None or buildings_gdf.crs != "EPSG:4326":
         buildings_gdf = buildings_gdf.set_crs("EPSG:4326", allow_override=True)
+    
+    # Drop all columns except geometry to prevent JSON serialization errors (like ndarray)
+    buildings_gdf = buildings_gdf[['geometry']]
 
     buildings_gdf = buildings_gdf.to_crs(gdf.crs)
     buildings_gdf["geometry"] = buildings_gdf.geometry.buffer(0)

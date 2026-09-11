@@ -1,6 +1,7 @@
 flask
 geopandas
 folium
-overpy
+overturemaps
+pyarrow
 pandas
 shapely

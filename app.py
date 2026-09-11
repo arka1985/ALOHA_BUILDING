@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 import geopandas as gpd
 import folium
-import overpy
+import overturemaps
 import pandas as pd
 from shapely.geometry import Polygon
 import os
@@ -57,44 +57,26 @@ def generate_map(kml_path):
     if not (-90 <= south <= 90 and -90 <= north <= 90 and -180 <= west <= 180 and -180 <= east <= 180):
         raise ValueError("Invalid bounding box coordinates.")
 
-    # Overpass API query
-    overpass_query = f"""
-    [out:json][timeout:25];
-    (
-      way["building"]({south}, {west}, {north}, {east});
-      relation["building"]({south}, {west}, {north}, {east});
-    );
-    out body;
-    >;
-    out skel qt;
-    """
-
-    api = overpy.Overpass()
     try:
-        result = api.query(overpass_query)
-        print("Fetched building data from OpenStreetMap.")
+        import overturemaps
+        print("Fetching AI building data from Overture Maps...")
+        # overturemaps bbox is (xmin, ymin, xmax, ymax) which is (west, south, east, north)
+        buildings_gdf = overturemaps.geodataframe('building', bbox=(west, south, east, north))
+        print(f"Fetched {len(buildings_gdf)} buildings from Overture Maps.")
+    except ImportError:
+        print("Error: overturemaps is not installed. Please run: pip install overturemaps")
+        return None, None
     except Exception as e:
-        print(f"Error fetching building data: {e}")
+        print(f"Error fetching building data from Overture Maps: {e}")
         return None, None
 
-    if not result.ways:
-        print("No buildings found in OSM for this area.")
-        # Return map with just zones, 0 counts
+    if buildings_gdf.empty:
+        print("No buildings found in Overture Maps for this area.")
         return [], create_folium_map(gdf, None, south, west, north, east)
 
-    buildings = []
-    for way in result.ways:
-        if "building" in way.tags:
-            # Ensure polygon is closed
-            nodes = [(float(node.lon), float(node.lat)) for node in way.nodes]
-            if len(nodes) < 3: continue
-            geometry = Polygon(nodes)
-            buildings.append({"geometry": geometry, "tags": way.tags})
+    if buildings_gdf.crs is None or buildings_gdf.crs != "EPSG:4326":
+        buildings_gdf = buildings_gdf.set_crs("EPSG:4326", allow_override=True)
 
-    if not buildings:
-         return [], create_folium_map(gdf, None, south, west, north, east)
-
-    buildings_gdf = gpd.GeoDataFrame(buildings, crs="EPSG:4326")
     buildings_gdf = buildings_gdf.to_crs(gdf.crs)
     buildings_gdf["geometry"] = buildings_gdf.geometry.buffer(0)
 

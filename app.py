@@ -161,7 +161,12 @@ def generate_map(kml_path):
 def create_folium_map(gdf, buildings_gdf, south, west, north, east, counts_data=None):
     center_lat = (south + north) / 2
     center_lon = (west + east) / 2
-    m = folium.Map(location=[center_lat, center_lon], zoom_start=16, tiles='CartoDB dark_matter')
+    m = folium.Map(
+        location=[center_lat, center_lon], 
+        zoom_start=16, 
+        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attr='Esri World Imagery'
+    )
 
     # Add India States with thin dotted lines
     try:

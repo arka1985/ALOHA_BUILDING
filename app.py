@@ -217,10 +217,10 @@ def create_folium_map(gdf, buildings_gdf, south, west, north, east, counts_data=
             buildings_gdf,
             name="Buildings",
             style_function=lambda x: {
-                'color': '#666', 
-                'weight': 1, 
-                'fillColor': '#999',
-                'fillOpacity': 0.5
+                'color': '#000000', 
+                'weight': 2, 
+                'fillColor': '#2563eb',
+                'fillOpacity': 0.8
             },
             tooltip="Building"
         ).add_to(m)

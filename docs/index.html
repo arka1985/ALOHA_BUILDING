@@ -341,10 +341,11 @@
         // Initialize map
         const map = L.map('map').setView([20.5937, 78.9629], 5); // Default to India
 
-        // Add satellite tile layer for visible buildings
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-            maxZoom: 19
+        // Add dark mode tile layer with API key
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?api_key=cb1_3kxm_1_06ce7d7de871b835c5bea4c5', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
         }).addTo(map);
 
         // Load India States (From local JS file)
@@ -480,10 +481,10 @@
                 // Display buildings
                 buildingsLayer = L.geoJSON(buildingsGeoJSON, {
                     style: {
-                        color: '#000000',
-                        weight: 2,
-                        fillColor: '#2563eb',
-                        fillOpacity: 0.8
+                        color: '#60a5fa',
+                        weight: 1,
+                        fillColor: '#3b82f6',
+                        fillOpacity: 0.7
                     }
                 }).addTo(map);
 

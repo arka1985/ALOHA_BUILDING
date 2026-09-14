@@ -149,8 +149,8 @@ def create_folium_map(gdf, buildings_gdf, south, west, north, east, counts_data=
     m = folium.Map(
         location=[center_lat, center_lon], 
         zoom_start=16, 
-        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        attr='Esri World Imagery'
+        tiles='https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?api_key=cb1_3kxm_1_06ce7d7de871b835c5bea4c5',
+        attr='&copy; OpenStreetMap contributors &copy; CARTO'
     )
 
     # Add India States with thin dotted lines
@@ -207,10 +207,10 @@ def create_folium_map(gdf, buildings_gdf, south, west, north, east, counts_data=
             buildings_gdf,
             name="Buildings",
             style_function=lambda x: {
-                'color': '#000000', 
-                'weight': 2, 
-                'fillColor': '#2563eb',
-                'fillOpacity': 0.8
+                'color': '#60a5fa', 
+                'weight': 1, 
+                'fillColor': '#3b82f6',
+                'fillOpacity': 0.7
             },
             tooltip="Building"
         ).add_to(m)

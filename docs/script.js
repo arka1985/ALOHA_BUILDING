@@ -127,11 +127,28 @@ async function fetchBuildings(bounds) {
         out skel qt;
     `;
 
-    try {
-        const url = 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query);
-        const response = await fetch(url);
+    let response;
+    const endpoints = [
+        'https://overpass-api.de/api/interpreter',
+        'https://lz4.overpass-api.de/api/interpreter',
+        'https://overpass.kumi.systems/api/interpreter',
+        'https://overpass.osm.ch/api/interpreter'
+    ];
+    
+    for (const endpoint of endpoints) {
+        try {
+            console.log('Trying Overpass endpoint:', endpoint);
+            const url = endpoint + '?data=' + encodeURIComponent(query);
+            response = await fetch(url);
+            if (response.ok) break;
+        } catch (e) {
+            console.warn(endpoint + ' failed.');
+        }
+    }
 
-        if (!response.ok) throw new Error('Overpass API request failed');
+    if (!response || !response.ok) {
+        throw new Error('Overpass API request failed on all servers. The area might be too large or you are being rate-limited.');
+    }
 
         const osmData = await response.json();
         const buildingsGeoJSON = osmtogeojson(osmData);

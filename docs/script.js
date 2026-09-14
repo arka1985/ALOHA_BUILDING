@@ -128,9 +128,10 @@ async function fetchBuildings(bounds) {
     `;
 
     try {
-        const response = await fetch('https://lz4.overpass-api.de/api/interpreter', {
+        const response = await fetch('https://overpass-api.de/api/interpreter', {
             method: 'POST',
-            body: query
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'data=' + encodeURIComponent(query)
         });
 
         if (!response.ok) throw new Error('Overpass API request failed');

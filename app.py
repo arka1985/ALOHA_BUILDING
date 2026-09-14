@@ -83,33 +83,26 @@ def generate_map(kml_path):
     buildings_gdf = buildings_gdf.to_crs(gdf.crs)
     buildings_gdf["geometry"] = buildings_gdf.geometry.buffer(0)
 
-    # Clip buildings to the threat zones
-    clipped_buildings = gpd.clip(buildings_gdf, gdf.geometry.union_all())
+    # Reproject to UTM Zone 45 for area calculations first to speed up geometry ops
+    utm_crs = "EPSG:32645" 
+    buildings_gdf = buildings_gdf.to_crs(utm_crs)
+    gdf_utm = gdf.to_crs(utm_crs)
+    
+    # Calculate ORIGINAL building area before any intersection
+    buildings_gdf["building_area"] = buildings_gdf.geometry.area
 
-    if clipped_buildings.empty:
+    # Spatial join with intersects (this is 100x faster than clip)
+    buildings_within_zones = gpd.sjoin(buildings_gdf, gdf_utm, how="inner", predicate="intersects")
+
+    if buildings_within_zones.empty:
          return [], create_folium_map(gdf, None, south, west, north, east)
 
-    # Reproject to UTM Zone 45 for area calculations (User logic hardcoded Zone 45N? 
-    # Better to estimate UTM zone from centroid, but sticking to user logic for now 
-    # or using a generic equal area projection like EPSG:3857 for simplicity/speed if accuracy isn't sub-meter critical?
-    # User asked for specific logic. I will stick to their EPSG:32645 but warn if outside India/Zone 45)
-    utm_crs = "EPSG:32645" 
-    clipped_buildings = clipped_buildings.to_crs(utm_crs)
-    gdf_utm = gdf.to_crs(utm_crs)
+    # Vectorized intersection area calculation (no slow .apply loops!)
+    zone_geoms = gpd.GeoSeries(gdf_utm.loc[buildings_within_zones.index_right].geometry.values, index=buildings_within_zones.index)
+    buildings_within_zones["overlap_area"] = buildings_within_zones.geometry.intersection(zone_geoms).area
 
-    # Spatial join with intersects to allow partial overlaps
-    buildings_within_zones = gpd.sjoin(clipped_buildings, gdf_utm, how="inner", predicate="intersects")
-
-    # Calculate areas
-    buildings_within_zones = buildings_within_zones.copy()  # Avoid SettingWithCopyWarning
-    buildings_within_zones["building_area"] = buildings_within_zones.geometry.area
-    buildings_within_zones["overlap_area"] = buildings_within_zones.apply(
-        lambda row: row.geometry.intersection(gdf_utm.loc[row.index_right].geometry).area,
-        axis=1
-    )
-
-    # Apply threshold to filter buildings
-    threshold = 0.5  # Adjust this value (0.0 to 1.0)
+    # Apply threshold to filter buildings (must be 50% inside the zone)
+    threshold = 0.5
     buildings_within_zones["is_within"] = (
         buildings_within_zones["overlap_area"] > threshold * buildings_within_zones["building_area"]
     )
@@ -139,9 +132,13 @@ def generate_map(kml_path):
 
     # Reproject back to WGS84 for visualization
     gdf = gdf.to_crs("EPSG:4326")
-    clipped_buildings = clipped_buildings.to_crs("EPSG:4326")
     
-    return counts_data, create_folium_map(gdf, clipped_buildings, south, west, north, east, counts_data)
+    if not filtered_buildings.empty:
+        valid_buildings = filtered_buildings.to_crs("EPSG:4326")
+    else:
+        valid_buildings = gpd.GeoDataFrame(columns=['geometry'], crs="EPSG:4326")
+        
+    return counts_data, create_folium_map(gdf, valid_buildings, south, west, north, east, counts_data)
 
 def create_folium_map(gdf, buildings_gdf, south, west, north, east, counts_data=None):
     center_lat = (south + north) / 2

@@ -1,11 +1,11 @@
 // Initialize map
 const map = L.map('map').setView([20.5937, 78.9629], 5); // Default to India
 
-// Add dark mode tile layer with API key
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?api_key=cb1_3kxm_1_06ce7d7de871b835c5bea4c5', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 20
+// Add OpenStreetMap with a CSS filter to create a perfect Dark Mode (No API key needed!)
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+    className: 'map-tiles'
 }).addTo(map);
 
 // State
@@ -119,7 +119,7 @@ async function fetchBuildings(bounds) {
     `;
 
     try {
-        const response = await fetch('https://overpass-api.de/api/interpreter', {
+        const response = await fetch('https://lz4.overpass-api.de/api/interpreter', {
             method: 'POST',
             body: query
         });

@@ -228,8 +228,8 @@ def create_folium_map(gdf, buildings_gdf, south, west, north, east, counts_data=
             tooltip="Building"
         ).add_to(m)
 
-    # Add layer control to toggle Satellite view
-    folium.LayerControl().add_to(m)
+    # Add layer control to toggle Satellite view, positioned on the left to avoid the right-side panel
+    folium.LayerControl(position='topleft').add_to(m)
 
     return m._repr_html_()
 

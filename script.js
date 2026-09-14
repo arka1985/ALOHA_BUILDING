@@ -16,12 +16,12 @@ const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/se
 // Add default map
 darkMap.addTo(map);
 
-// Add layer control
+// Add layer control positioned on the left
 const baseMaps = {
     "Dark Map": darkMap,
     "Satellite View": satelliteMap
 };
-L.control.layers(baseMaps).addTo(map);
+L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
 
 // State
 let threatZonesLayer = null;

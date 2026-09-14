@@ -1,12 +1,27 @@
 // Initialize map
 const map = L.map('map').setView([20.5937, 78.9629], 5); // Default to India
 
-// Add OpenStreetMap with a CSS filter to create a perfect Dark Mode (No API key needed!)
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+// Initialize base maps
+const darkMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
     maxZoom: 19,
     className: 'map-tiles'
-}).addTo(map);
+});
+
+const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri',
+    maxZoom: 19
+});
+
+// Add default map
+darkMap.addTo(map);
+
+// Add layer control
+const baseMaps = {
+    "Dark Map": darkMap,
+    "Satellite View": satelliteMap
+};
+L.control.layers(baseMaps).addTo(map);
 
 // Load India States
 fetch('INDIA/INDIA_STATES.geojson')

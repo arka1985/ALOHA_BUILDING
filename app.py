@@ -146,9 +146,25 @@ def create_folium_map(gdf, buildings_gdf, south, west, north, east, counts_data=
     m = folium.Map(
         location=[center_lat, center_lon], 
         zoom_start=16, 
-        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-        attr='Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ'
+        tiles=None
     )
+    
+    # Dark Map (Default)
+    folium.TileLayer(
+        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+        attr='Esri Dark Gray',
+        name='Dark Map',
+        control=True
+    ).add_to(m)
+    
+    # Satellite Map (Toggle)
+    folium.TileLayer(
+        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attr='Esri Satellite',
+        name='Satellite View',
+        show=False,
+        control=True
+    ).add_to(m)
 
     # Add India States with thin dotted lines
     try:
@@ -211,6 +227,9 @@ def create_folium_map(gdf, buildings_gdf, south, west, north, east, counts_data=
             },
             tooltip="Building"
         ).add_to(m)
+
+    # Add layer control to toggle Satellite view
+    folium.LayerControl().add_to(m)
 
     return m._repr_html_()
 
